@@ -2,6 +2,7 @@ package link
 
 import (
 	"errors"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 const (
 	UserAgent        = "Opendoor"
 	DeliciousPostUrl = "https://api.del.icio.us/v1/posts/add"
-	HttpTimeout      = 30 // 30 seconds timeout, yup.
+	HttpTimeout      = 5 // Wait at most 5 seconds for Delicious.
 )
 
 var (
@@ -37,33 +38,44 @@ func Tags(txt string) []string {
 	return tags
 }
 
-func Save(u string, tags []string) (err error) {
-	client := &http.Client{Timeout: HttpTimeout * time.Second}
-	params := url.Values{}
-	params.Set("url", u)
-	params.Set("description", u) // FIXME actually a title
-	params.Set("tags", strings.Join(tags, ","))
+func deliciousPostParams(u string, tags []string) io.Reader {
+	form := url.Values{}
+	form.Set("url", u)
+	form.Set("description", u) // FIXME actually a title
+	form.Set("tags", strings.Join(tags, ","))
 	if IncludesPrivate(tags) {
-		params.Set("shared", "no")
+		form.Set("shared", "no")
 	}
+	return strings.NewReader(form.Encode())
+}
 
-	req, err := http.NewRequest("POST", DeliciousPostUrl, strings.NewReader(params.Encode()))
+// Custom Delicious API client, without keep-alive.
+func deliciousClient() *http.Client {
+	return &http.Client{
+		Timeout:   HttpTimeout * time.Second,
+		Transport: &http.Transport{DisableKeepAlives: true},
+	}
+}
+
+func Save(u string, tags []string) (err error) {
+	params := deliciousPostParams(u, tags)
+	req, err := http.NewRequest("POST", DeliciousPostUrl, params)
 	if err != nil {
 		return
 	}
 	token, err := oauthToken()
 	if err != nil {
-		return err
+		return
 	}
 	req.Header.Add("Authorization", token)
 	req.Header.Add("User-Agent", UserAgent)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
 
-	return parseResponse(resp)
+	client := deliciousClient()
+	if resp, err := client.Do(req); err == nil {
+		return parseResponse(resp)
+	}
+	return
 }
 
 func IncludesPrivate(tags []string) bool {
