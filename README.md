@@ -31,3 +31,11 @@ The bot is configured through the following environment variables.
 # Usage
 
 Just launch the `miniporte` binary, it has no command-line flags.
+
+# Todo
+
+Lots.
+
+# License
+
+MIT.
