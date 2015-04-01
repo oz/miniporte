@@ -21,7 +21,7 @@ const (
 
 var (
 	LinkRx = regexp.MustCompile(`(https?://[^ )]+)`)
-	TagsRx = regexp.MustCompile(`#[\w-]+`)
+	TagsRx = regexp.MustCompile(`\s(#[\w\pL-]+)`)
 	CodeRx = regexp.MustCompile(`code="(.*?)"`)
 )
 
@@ -32,8 +32,8 @@ func Find(txt string) string {
 // Extract tags from a string, w/o the leading '#'
 func Tags(txt string) []string {
 	tags := []string{}
-	for _, tag := range TagsRx.FindAllString(txt, -1) {
-		tags = append(tags, strings.TrimLeft(tag, "#"))
+	for _, match := range TagsRx.FindAllStringSubmatch(txt, -1) {
+		tags = append(tags, strings.TrimLeft(match[1], "#"))
 	}
 	return tags
 }
