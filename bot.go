@@ -31,8 +31,6 @@ func New() *Bot {
 }
 
 func (b *Bot) OnMessage(msg *irc.Line) {
-	log.Println(msg.Target(), msg.Text())
-
 	// Ignore non-public messages
 	if !msg.Public() {
 		return
