@@ -44,10 +44,14 @@ func (b *Bot) OnMessage(msg *irc.Line) {
 		tags = append(tags, msg.Nick, msg.Target())
 		go func() {
 			if err := link.Save(url, tags); err != nil {
-				b.Client.Privmsg(msg.Target(), "Oops! "+err.Error())
+				if !link.IncludesPrivate(tags) {
+					b.Client.Privmsg(msg.Target(), "Oops! "+err.Error())
+				}
 				return
 			}
-			b.Client.Privmsg(msg.Target(), "Saved!")
+			if !link.IncludesPrivate(tags) {
+				b.Client.Privmsg(msg.Target(), "Saved!")
+			}
 		}()
 	}
 }
