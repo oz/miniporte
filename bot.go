@@ -13,6 +13,7 @@ type Bot struct {
 	Chans  []string
 	Config *irc.Config
 	Client *irc.Conn
+	Ctl    (chan string)
 }
 
 func New() *Bot {
@@ -27,6 +28,7 @@ func New() *Bot {
 		Chans:  strings.Split(getEnvOr("IRC_CHANS", "#af83-bots"), ","),
 		Config: cfg,
 		Client: irc.Client(cfg),
+		Ctl:    make(chan string),
 	}
 }
 
@@ -64,8 +66,6 @@ func (b *Bot) JoinChannels() {
 }
 
 func (b *Bot) Run() {
-	ctl := make(chan string)
-
 	// Connected
 	b.Client.HandleFunc("connected", func(conn *irc.Conn, line *irc.Line) {
 		log.Println("Connected!")
@@ -73,11 +73,10 @@ func (b *Bot) Run() {
 	})
 
 	// Disconnected
-	b.Client.HandleFunc("disconnected",
-		func(conn *irc.Conn, line *irc.Line) {
-			log.Println("Disconnected")
-			ctl <- "disconnected"
-		})
+	b.Client.HandleFunc("disconnected", func(conn *irc.Conn, line *irc.Line) {
+		log.Println("Disconnected")
+		b.Ctl <- "disconnected"
+	})
 
 	// PRIVMSG
 	b.Client.HandleFunc("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
@@ -91,15 +90,20 @@ func (b *Bot) Run() {
 			log.Printf("Connection error: %s\n", err)
 		}
 
-		for cmd := range ctl {
-			if cmd == "quit" {
+		for cmd := range b.Ctl {
+			switch cmd {
+			case "quit":
 				b.Client.Quit("Bye...")
 				log.Println("Quitting...")
 				return
+			case "disconnected":
+				log.Println("Trying to reconnect after", cmd)
+				break
+			default:
+				log.Println("Ignoring command", cmd)
 			}
 		}
 	}
-
 }
 
 // Retrieve the environment variable "name", or a default value.
