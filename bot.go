@@ -3,6 +3,7 @@ package miniporte
 import (
 	"log"
 
+	"github.com/cenkalti/backoff"
 	irc "github.com/fluffle/goirc/client"
 	link "github.com/oz/miniporte/link"
 )
@@ -40,6 +41,7 @@ func (b *Bot) joinChannels() {
 
 func (b *Bot) Run() {
 	b.initializeHandlers()
+	go b.connect()
 	b.commandLoop()
 	log.Println("Bot quitting...")
 }
@@ -89,22 +91,29 @@ func (b *Bot) initializeHandlers() {
 	})
 }
 
+func (b *Bot) connect() {
+	op := func() error {
+		log.Println("Connecting to", b.Config.Server)
+		return b.Client.Connect()
+	}
+	if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+		log.Printf("Connection error: %s\n", err)
+		b.Ctl <- "connection-error"
+	}
+}
+
 // Connection loop
 func (b *Bot) commandLoop() {
 	for {
-		log.Println("Connecting to IRC...")
-		if err := b.Client.Connect(); err != nil {
-			log.Printf("Connection error: %s\n", err)
-		}
-
 		for cmd := range b.Ctl {
 			switch cmd {
 			case "quit":
 				b.Client.Quit("Bye...")
 				return
 			case "disconnected":
-				log.Println("Trying to reconnect after", cmd)
-				break
+			case "connection-error":
+				log.Println("Disconnected:", cmd)
+				go b.connect()
 			default:
 				log.Println("Ignoring command", cmd)
 			}
