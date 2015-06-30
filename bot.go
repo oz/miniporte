@@ -107,9 +107,6 @@ func (b *Bot) commandLoop() {
 	for {
 		for cmd := range b.Ctl {
 			switch cmd {
-			case "quit":
-				b.Client.Quit("Bye...")
-				return
 			case "disconnected":
 			case "connection-error":
 				log.Println("Disconnected:", cmd)
