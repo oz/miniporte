@@ -2,8 +2,6 @@ package miniporte
 
 import (
 	"log"
-	"os"
-	"strings"
 
 	irc "github.com/fluffle/goirc/client"
 	link "github.com/oz/miniporte/link"
@@ -16,23 +14,37 @@ type Bot struct {
 	Ctl    (chan string)
 }
 
-func New() *Bot {
-	cfg := irc.NewConfig(getEnvOr("IRC_NICK", "miniporte"))
+// Create a new Bot
+func New(server, nick, name, ident string, chans []string) *Bot {
+	cfg := irc.NewConfig(nick)
 	cfg.SSL = true
-	cfg.Me.Name = getEnvOr("IRC_NAME", "Mini-Porte")
-	cfg.Me.Ident = getEnvOr("IRC_IDENT", "MiniPorteIRCBot")
-	cfg.Server = getEnvOr("IRC_SERVER", "irc.freenode.net:7000")
+	cfg.Me.Name = name
+	cfg.Me.Ident = ident
+	cfg.Server = server
 	cfg.NewNick = func(n string) string { return n + "_" }
 
 	return &Bot{
-		Chans:  strings.Split(getEnvOr("IRC_CHANS", "#af83-bots"), ","),
+		Chans:  chans,
 		Config: cfg,
 		Client: irc.Client(cfg),
 		Ctl:    make(chan string),
 	}
 }
 
-func (b *Bot) OnMessage(msg *irc.Line) {
+func (b *Bot) joinChannels() {
+	log.Println("Joining channels", b.Chans)
+	for _, c := range b.Chans {
+		b.Client.Join(c)
+	}
+}
+
+func (b *Bot) Run() {
+	b.initializeHandlers()
+	b.commandLoop()
+	log.Println("Bot quitting...")
+}
+
+func (b *Bot) onMessage(msg *irc.Line) {
 	// Ignore non-public messages
 	if !msg.Public() {
 		return
@@ -58,18 +70,11 @@ func (b *Bot) OnMessage(msg *irc.Line) {
 	}
 }
 
-func (b *Bot) JoinChannels() {
-	log.Println("Joining channels", b.Chans)
-	for _, c := range b.Chans {
-		b.Client.Join(c)
-	}
-}
-
-func (b *Bot) Run() {
+func (b *Bot) initializeHandlers() {
 	// Connected
 	b.Client.HandleFunc("connected", func(conn *irc.Conn, line *irc.Line) {
 		log.Println("Connected!")
-		b.JoinChannels()
+		b.joinChannels()
 	})
 
 	// Disconnected
@@ -80,10 +85,12 @@ func (b *Bot) Run() {
 
 	// PRIVMSG
 	b.Client.HandleFunc("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
-		b.OnMessage(line)
+		b.onMessage(line)
 	})
+}
 
-	// Connection loop
+// Connection loop
+func (b *Bot) commandLoop() {
 	for {
 		log.Println("Connecting to IRC...")
 		if err := b.Client.Connect(); err != nil {
@@ -94,7 +101,6 @@ func (b *Bot) Run() {
 			switch cmd {
 			case "quit":
 				b.Client.Quit("Bye...")
-				log.Println("Quitting...")
 				return
 			case "disconnected":
 				log.Println("Trying to reconnect after", cmd)
@@ -104,13 +110,4 @@ func (b *Bot) Run() {
 			}
 		}
 	}
-}
-
-// Retrieve the environment variable "name", or a default value.
-func getEnvOr(name, defaultValue string) (out string) {
-	out = os.Getenv(name)
-	if out == "" {
-		out = defaultValue
-	}
-	return
 }
