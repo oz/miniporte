@@ -30,7 +30,8 @@ The bot is configured through the following environment variables.
 
 # Usage
 
-Just launch the `miniporte` binary, it has no command-line flags.
+Just launch the `miniporte` program if the defaults are fine. Check the `-help`
+flag for more options.
 
 # Todo
 

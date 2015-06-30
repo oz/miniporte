@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"strings"
 
@@ -8,13 +9,15 @@ import (
 )
 
 func main() {
-	bot.New(
-		getEnvOr("IRC_SERVER", "irc.freenode.net:7000"),
-		getEnvOr("IRC_NICK", "miniporte"),
-		getEnvOr("IRC_NAME", "Mini-Porte"),
-		getEnvOr("IRC_IDENT", "MiniPorteIRCBot"),
-		strings.Split(getEnvOr("IRC_CHANS", "#af83-bots"), ","),
-	).Run()
+	var (
+		server = flag.String("server", getEnvOr("IRC_SERVER", "irc.freenode.net:7000"), "IRC Server")
+		nick   = flag.String("nick", getEnvOr("IRC_NICK", "miniporte"), "Bot nick")
+		name   = flag.String("name", getEnvOr("IRC_NAME", "Mini-Porte"), "Bot's name")
+		ident  = flag.String("ident", getEnvOr("IRC_IDENT", "MiniPorteIRCBot"), "Bot's ident")
+		chans  = flag.String("chans", getEnvOr("IRC_CHANS", "#minibots"), "Bot's chans at boot, comma separated")
+	)
+	flag.Parse()
+	bot.New(*server, *nick, *name, *ident, strings.Split(*chans, ",")).Run()
 }
 
 // Get the environment variable "name", or a default value.
