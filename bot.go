@@ -41,7 +41,7 @@ func (b *Bot) joinChannels() {
 
 func (b *Bot) Run() {
 	b.initializeHandlers()
-	go b.connect()
+	go b.Connect()
 	b.commandLoop()
 	log.Println("Bot quitting...")
 }
@@ -91,12 +91,13 @@ func (b *Bot) initializeHandlers() {
 	})
 }
 
+func (b *Bot) Connect() error {
+	log.Println("Connecting to", b.Config.Server)
+	return b.Client.Connect()
+}
+
 func (b *Bot) connect() {
-	op := func() error {
-		log.Println("Connecting to", b.Config.Server)
-		return b.Client.Connect()
-	}
-	if err := backoff.Retry(op, backoff.NewExponentialBackOff()); err != nil {
+	if err := backoff.Retry(bot.Connect, backoff.NewExponentialBackOff()); err != nil {
 		log.Printf("Connection error: %s\n", err)
 		b.Ctl <- "connection-error"
 	}
@@ -107,8 +108,7 @@ func (b *Bot) commandLoop() {
 	for {
 		for cmd := range b.Ctl {
 			switch cmd {
-			case "disconnected":
-			case "connection-error":
+			case "disconnected", "connection-error":
 				log.Println("Disconnected:", cmd)
 				go b.connect()
 			default:
