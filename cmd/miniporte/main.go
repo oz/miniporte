@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var (
-		server = flag.String("server", getEnvOr("IRC_SERVER", "irc.freenode.net:7000"), "IRC Server")
+		server = flag.String("server", getEnvOr("IRC_SERVER", "chat.freenode.net:7000"), "IRC Server")
 		nick   = flag.String("nick", getEnvOr("IRC_NICK", "miniporte"), "Bot nick")
 		name   = flag.String("name", getEnvOr("IRC_NAME", "Mini-Porte"), "Bot's name")
 		ident  = flag.String("ident", getEnvOr("IRC_IDENT", "MiniPorteIRCBot"), "Bot's ident")
