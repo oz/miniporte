@@ -97,7 +97,7 @@ func (b *Bot) Connect() error {
 }
 
 func (b *Bot) connect() {
-	if err := backoff.Retry(bot.Connect, backoff.NewExponentialBackOff()); err != nil {
+	if err := backoff.Retry(b.Connect, backoff.NewExponentialBackOff()); err != nil {
 		log.Printf("Connection error: %s\n", err)
 		b.Ctl <- "connection-error"
 	}
