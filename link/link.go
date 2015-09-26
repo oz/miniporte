@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	UserAgent        = "Opendoor"
+	UserAgent        = "Miniporte IRC bot 0.1"
 	DeliciousPostUrl = "https://api.del.icio.us/v1/posts/add"
 	HttpTimeout      = 5 // Wait at most 5 seconds for Delicious.
 )
