@@ -104,7 +104,7 @@ func parseResponse(resp *http.Response) error {
 	code := string(m[1])
 
 	// "done" is good, we like "done".
-	if code == "done" {
+	if code == "done" || code == "error adding link" {
 		return nil
 	}
 	log.Println("Delicious error: ", string(body))
