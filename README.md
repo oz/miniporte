@@ -1,11 +1,13 @@
 # Miniporte
 
-This is a small IRC bot we use at [af83](http://af83.com) to log links to a
-Delicious account (before processing them).  It does not do anything appart
-from that.
+This is a small IRC bot to save links shared on IRC channels onto various
+online services.
 
 Every link is logged using the provided tags. When no tag is provided, or if
-the *#private* tag is used, the link is saved privately.
+the *#private* tag is used, the link is saved privately (for services that
+support it).
+
+Additionally, the IRC channel, and user's nick are used as tags too.
 
 # Installation
 
@@ -23,10 +25,11 @@ The bot is configured through the following environment variables.
 - `IRC_NICK` IRC nick, defaults to `miniporte`.
 - `IRC_NAME` IRC name, defaults to `Mini-Porte`.
 - `IRC_IDENT` IRC *ident* name, defaults to `MiniPorteIRCBot`.
-- `IRC_CHANS` comma-separated list of IRC channels, defaults to
-  `#af83-bots`.
-- `DELICIOUS_OAUTH_TOKEN` we use Delicious' API (for the worse), get an
-  OAuth token to post links, set it here.
+- `IRC_CHANS` comma-separated list of IRC channels, defaults to `#minibots`.
+- `EPISTOLI_TOKEN` we use [Epistoli][epistoli]'s cute API, get a token from
+  them to post links, set it here.
+
+[epistoli]: https://episto.li
 
 # Usage
 
@@ -35,7 +38,27 @@ flag for more options.
 
 # Todo
 
-Lots.
+Lots. :muscle:
+
+# Background
+
+This is maybe boring, TLDR: a simpler version of another proprietary IRC bot.
+
+It all started at [af83][af83], where a [Cinch][cinch]-based bot would log
+links from IRC to a Delicious account (for later processing). The bot did many
+things, talked to Jenkins, Trello, etc.
+
+Well it did a lot of other (possibly) useful things in those days of hardware
+hacking, and software exploration, and fun. It was called [Mr. Porte][mr-porte]
+(*Mr. Door* opened the electronic front-door lock), and it is now offline.
+
+This project, however, is content with the logging of links (URIs really) onto
+your favourite online service. Hence its name *miniporte*, tiny-door, as a
+tribute to a long gone ancestor. :door:
+
+[af83]: http://af83.com
+[cinch]: https://github.com/cinchrb/cinch
+[mr-porte]: https://episto.li/profile/les-pepitos/mr-porte
 
 # License
 
