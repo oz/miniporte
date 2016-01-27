@@ -5,7 +5,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	irc "github.com/fluffle/goirc/client"
-	"github.com/oz/miniporte/delicious"
+	"github.com/oz/miniporte/epistoli"
 	link "github.com/oz/miniporte/link"
 )
 
@@ -53,7 +53,7 @@ func (b *Bot) onMessage(msg *irc.Line) {
 		return
 	}
 
-	l := link.New(delicious.New())
+	l := link.New(epistoli.New())
 	if err := l.MustExtract(msg.Text()); err != nil {
 		// No links.
 		return
