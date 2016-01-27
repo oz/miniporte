@@ -5,6 +5,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	irc "github.com/fluffle/goirc/client"
+	"github.com/oz/miniporte/delicious"
 	link "github.com/oz/miniporte/link"
 )
 
@@ -52,24 +53,23 @@ func (b *Bot) onMessage(msg *irc.Line) {
 		return
 	}
 
-	if url := link.Find(msg.Text()); url != "" {
-		tags := link.Tags(msg.Text())
-		if len(tags) == 0 {
-			tags = []string{"private"}
-		}
-		tags = append(tags, msg.Nick, msg.Target())
-		go func() {
-			if err := link.Save(url, tags); err != nil {
-				if !link.IncludesPrivate(tags) {
-					b.Client.Privmsg(msg.Target(), "Oops! "+err.Error())
-				}
-				return
-			}
-			if !link.IncludesPrivate(tags) {
-				b.Client.Privmsg(msg.Target(), "Saved!")
-			}
-		}()
+	l := link.New(delicious.New())
+	if err := l.MustExtract(msg.Text()); err != nil {
+		// No links.
+		return
 	}
+	l.Tags = append(l.Tags, msg.Nick, msg.Target())
+	go func() {
+		if err := l.Save(); err != nil {
+			if l.Pub {
+				b.Client.Privmsg(msg.Target(), "Oops! "+err.Error())
+			}
+			return
+		}
+		if l.Pub {
+			b.Client.Privmsg(msg.Target(), "Saved!")
+		}
+	}()
 }
 
 func (b *Bot) initializeHandlers() {
