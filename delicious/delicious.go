@@ -18,6 +18,7 @@ import (
 const (
 	DeliciousPostUrl = "https://api.del.icio.us/v1/posts/add"
 	HttpTimeout      = 5 // Wait at most 5 seconds for Delicious.
+	ServiceName      = "delicious"
 )
 
 var (
@@ -39,12 +40,10 @@ func New() *Delicious {
 }
 
 func (d *Delicious) String() string {
-	return "delicious"
+	return ServiceName
 }
 
 func (d *Delicious) Save(l *link.Link) (err error) {
-	return errors.New("Not implemented")
-
 	params := postParams(l)
 	req, err := http.NewRequest("POST", DeliciousPostUrl, params)
 	if err != nil {
