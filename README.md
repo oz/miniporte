@@ -26,8 +26,12 @@ The bot is configured through the following environment variables.
 - `IRC_NAME` IRC name, defaults to `Mini-Porte`.
 - `IRC_IDENT` IRC *ident* name, defaults to `MiniPorteIRCBot`.
 - `IRC_CHANS` comma-separated list of IRC channels, defaults to `#minibots`.
-- `EPISTOLI_TOKEN` we use [Epistoli][epistoli]'s cute API, get a token from
-  them to post links, set it here.
+
+In order to use [Epistoli][epistoli]'s cute API to build newsletters
+from the links shared on IRC, you will also need:
+
+- `EPISTOLI_TOKEN` API token to post links,
+- `EPISTOLI_LETTER` The newsletter name where links are posted.
 
 [epistoli]: https://episto.li
 

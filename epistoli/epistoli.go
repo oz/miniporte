@@ -14,14 +14,20 @@ import (
 )
 
 const (
+	// ServiceName is this package's pretty name.
 	ServiceName = "epistoli"
-	ApiUrl      = "https://episto.li/api/v1"
-	HttpTimeout = 3 // no patience, 3 secs is plenty!
+
+	// APIURL is the base API endpoint for Epistoli.
+	APIURL = "https://episto.li/api/v1"
+
+	// HTTPTimeout specifies how many seconds we wait for the API to answer.
+	HTTPTimeout = 3
 )
 
-// The basic Epistoli type: just enough to satisfy the link.Service
+// Epistoli base type: just enough to satisfy the link.Service
 // interface.
 type Epistoli struct {
+	Letter string
 	client *http.Client
 }
 
@@ -31,10 +37,12 @@ type response struct {
 	// And other stuff we don't care about ATM...
 }
 
+// New initialize an Epistoli service.
 func New() *Epistoli {
 	return &Epistoli{
+		Letter: os.Getenv("EPISTOLI_LETTER"),
 		client: &http.Client{
-			Timeout:   HttpTimeout * time.Second,
+			Timeout:   HTTPTimeout * time.Second,
 			Transport: &http.Transport{DisableKeepAlives: true},
 		},
 	}
@@ -46,10 +54,10 @@ func (e *Epistoli) String() string {
 
 // Save a Link to Epistoli
 func (e *Epistoli) Save(l *link.Link) (err error) {
-	params := postParams(l)
-	postUrl := ApiUrl + "/bookmarks"
+	params := e.postParams(l)
+	postURL := APIURL + "/bookmarks"
 
-	req, err := http.NewRequest("POST", postUrl, params)
+	req, err := http.NewRequest("POST", postURL, params)
 	if err != nil {
 		return
 	}
@@ -86,9 +94,10 @@ func parseResponse(resp *http.Response) error {
 }
 
 // Check the docs at: https://github.com/Epistoli/apidocs
-func postParams(l *link.Link) io.Reader {
+func (e *Epistoli) postParams(l *link.Link) io.Reader {
 	form := url.Values{}
 	form.Set("url", l.Url)
+	form.Set("newsletter_id", e.Letter)
 	form.Set("tags", strings.Join(l.Tags, ","))
 	return strings.NewReader(form.Encode())
 }
