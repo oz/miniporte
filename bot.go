@@ -9,6 +9,7 @@ import (
 	link "github.com/oz/miniporte/link"
 )
 
+// Bot stores the state of our bot, and its configuration.
 type Bot struct {
 	Chans  []string
 	Config *irc.Config
@@ -16,7 +17,7 @@ type Bot struct {
 	Ctl    (chan string)
 }
 
-// Create a new Bot
+// New initializes a new Bot, ready to connect to IRC.
 func New(server, nick, name, ident string, chans []string) *Bot {
 	cfg := irc.NewConfig(nick)
 	cfg.SSL = true
@@ -91,6 +92,7 @@ func (b *Bot) initializeHandlers() {
 	})
 }
 
+// Connect connect the bot to an IRC server.
 func (b *Bot) Connect() error {
 	log.Println("Connecting to", b.Config.Server)
 	return b.Client.Connect()
